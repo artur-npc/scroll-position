@@ -1,0 +1,231 @@
+ <!DOCTYPE html>
+    2 <html lang="en">
+    3 <head>
+    4   <meta charset="UTF-8" />
+    5   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    6   <title>EUD-5790 — Deep Link Scroll Test</title>
+    7
+    8   <!--
+    9     Replace data-settings-id with a real Usercentrics V2 settings ID.
+   10     Use a GDPR config to trigger the banner on load.
+   11   -->
+   12   <script
+   13     id="usercentrics-cmp"
+   14     src="https://app.usercentrics-develop.eu/pr/896/loader.js"
+   15     data-settings-id="k9u3jMNqjkODB1"
+   16     async
+   17   ></script>
+   18
+   19   <style>
+   20     * { box-sizing: border-box; margin: 0; padding: 0; }
+   21
+   22     body {
+   23       font-family: sans-serif;
+   24       color: #222;
+   25     }
+   26
+   27     .hero {
+   28       height: 100vh;
+   29       background: #f0f4ff;
+   30       display: flex;
+   31       align-items: center;
+   32       justify-content: center;
+   33       flex-direction: column;
+   34       gap: 16px;
+   35     }
+   36
+   37     .hero h1 { font-size: 2rem; }
+   38
+   39     /* Spacer to make the page tall enough to require scrolling */
+   40     .spacer {
+   41       height: 150vh;
+   42       background: linear-gradient(to bottom, #f0f4ff, #e8f5e9);
+   43       display: flex;
+   44       align-items: center;
+   45       justify-content: center;
+   46       font-size: 1.2rem;
+   47       color: #888;
+   48     }
+   49
+   50     /* Target section — this is where deep link should land */
+   51     .target-section {
+   52       padding: 80px 40px;
+   53       background: #fff9c4;
+   54       border-top: 4px solid #f9a825;
+   55       min-height: 60vh;
+   56     }
+   57
+   58     .target-section h2 {
+   59       font-size: 1.8rem;
+   60       margin-bottom: 12px;
+   61       color: #e65100;
+   62     }
+   63
+   64     .target-section p {
+   65       max-width: 640px;
+   66       line-height: 1.6;
+   67       margin-bottom: 12px;
+   68     }
+   69
+   70     /* Visual indicator showing current scroll position */
+   71     .scroll-monitor {
+   72       position: fixed;
+   73       top: 12px;
+   74       right: 12px;
+   75       background: rgba(0, 0, 0, 0.75);
+   76       color: #fff;
+   77       padding: 8px 14px;
+   78       border-radius: 6px;
+   79       font-size: 0.85rem;
+   80       z-index: 99999;
+   81       line-height: 1.6;
+   82     }
+   83
+   84     .scroll-monitor .label { color: #aaa; font-size: 0.75rem; }
+   85
+   86     .scroll-monitor .status-ok   { color: #69f0ae; font-weight: bold; }
+   87     .scroll-monitor .status-fail { color: #ff5252; font-weight: bold; }
+   88
+   89     /* Quick-nav links at the top */
+   90     .nav {
+   91       position: sticky;
+   92       top: 0;
+   93       background: #1a237e;
+   94       color: #fff;
+   95       padding: 10px 20px;
+   96       display: flex;
+   97       gap: 20px;
+   98       align-items: center;
+   99       z-index: 1000;
+  100       font-size: 0.9rem;
+  101     }
+  102
+  103     .nav a { color: #90caf9; text-decoration: none; }
+  104     .nav a:hover { text-decoration: underline; }
+  105
+  106     .footer {
+  107       padding: 60px 40px;
+  108       background: #263238;
+  109       color: #90a4ae;
+  110       text-align: center;
+  111     }
+  112   </style>
+  113 </head>
+  114 <body>
+  115
+  116   <!-- Sticky nav for manual navigation during testing -->
+  117   <nav class="nav">
+  118     <strong>EUD-5790 Test Page</strong>
+  119     <a href="#top">↑ Top</a>
+  120     <a href="#target-section">→ Jump to target section</a>
+  121     <a href="#bottom">→ Jump to bottom</a>
+  122   </nav>
+  123
+  124   <!-- Scroll position monitor — watches for unexpected resets -->
+  125   <div class="scroll-monitor" id="scroll-monitor">
+  126     <div><span class="label">scrollY</span> <span id="mon-y">0</span>px</di
+      v>
+  127     <div><span class="label">max reached</span> <span id="mon-max">0</span>
+      px</div>
+  128     <div><span class="label">resets detected</span> <span id="mon-resets">0
+      </span></div>
+  129     <div id="mon-status"></div>
+  130   </div>
+  131
+  132   <!-- Top anchor -->
+  133   <section id="top" class="hero">
+  134     <h1>Deep Link Scroll Test</h1>
+  135     <p>Open this page with <code>#target-section</code> in the URL.</p>
+  136     <p>
+  137       Direct link:
+  138       <a href="#target-section">this page #target-section</a>
+  139     </p>
+  140     <p style="font-size:0.9rem; color:#555;">
+  141       Expected: browser scrolls to the yellow section below.<br />
+  142       Bug: CMP banner load resets scroll back to top.
+  143     </p>
+  144   </section>
+  145
+  146   <!-- Filler content — simulates a real long page -->
+  147   <div class="spacer">↓ scroll down — target section is below ↓</div>
+  148
+  149   <!-- Target section — must be visible after page load via deep link -->
+  150   <section id="target-section" class="target-section">
+  151     <h2>Target Section (deep link destination)</h2>
+  152     <p>
+  153       If you arrived here via <code>#target-section</code> in the URL and t
+      his section
+  154       is visible <strong>without manually scrolling</strong>, the CMP did n
+      ot reset the
+  155       scroll position — <strong>the fix is working correctly</strong>.
+  156     </p>
+  157     <p>
+  158       If the page jumped back to the top after the banner appeared, the bug
+  159       (EUD-5790) is still present.
+  160     </p>
+  161     <p style="margin-top: 24px; font-size: 0.85rem; color: #888;">
+  162       Anchor id: <code>target-section</code>
+  163     </p>
+  164   </section>
+  165
+  166   <div class="spacer" style="height: 60vh; background: #e8f5e9;">
+  167     — more content below —
+  168   </div>
+  169
+  170   <!-- Bottom anchor -->
+  171   <footer id="bottom" class="footer">
+  172     Bottom of the page — anchor: <code>#bottom</code>
+  173   </footer>
+  174
+  175   <script>
+  176     // --- Scroll reset detection ---
+  177     // Records scroll position over time and counts unexpected resets to 0.
+  178
+  175   <script>
+  176     // --- Scroll reset detection ---
+  177     // Records scroll position over time and counts unexpected resets to 0.
+  178
+  179     let maxScrollY = 0;
+  180     let resetCount = 0;
+  181     let prevScrollY = window.scrollY;
+  182
+  183     const monY      = document.getElementById('mon-y');
+  184     const monMax    = document.getElementById('mon-max');
+  185     const monResets = document.getElementById('mon-resets');
+  186     const monStatus = document.getElementById('mon-status');
+  187
+  188     function updateMonitor() {
+  189       const y = Math.round(window.scrollY);
+  190       monY.textContent = y;
+  191
+  192       if (y > maxScrollY) {
+  193         maxScrollY = y;
+  194         monMax.textContent = maxScrollY;
+  195       }
+  196
+  197       // A reset is detected when scroll drops significantly (>100px) back toward 0
+  198       // after the page had already scrolled down — CMP symptom.
+  199       if (prevScrollY > 100 && y < 50) {
+  200         resetCount++;
+  201         monResets.textContent = resetCount;
+  202         monStatus.innerHTML = '<span class="status-fail">RESET DETECTED ✗</span>';
+  203       }
+  204
+  205       prevScrollY = y;
+  206     }
+  207
+  208     window.addEventListener('scroll', updateMonitor, { passive: true });
+  209
+  210     // Poll regularly to catch programmatic resets that don't fire a scroll event
+  211     setInterval(updateMonitor, 200);
+  212
+  213     // Mark as OK once target section has been in view for 2 seconds without reset
+  214     setTimeout(() => {
+  215       if (resetCount === 0 && window.scrollY > 100) {
+  216         monStatus.innerHTML = '<span class="status-ok">NO RESET ✓</span>';
+  217       }
+  218     }, 2000);
+  219   </script>
+  220
+  221 </body>
+  222 </html>
